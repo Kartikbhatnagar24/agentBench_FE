@@ -1,0 +1,427 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens ──────────────────────────────────────────────────────── */
+:root {
+  /* Surface system */
+  --surface-bg:      #09090b;
+  --surface-raised:  #111113;
+  --surface-overlay: #18181b;
+  --surface-border:  #27272a;
+  --surface-muted:   #3f3f46;
+
+  /* Text */
+  --text-primary:    #fafafa;
+  --text-secondary:  #a1a1aa;
+  --text-tertiary:   #52525b;
+
+  /* Accent — soft indigo, not neon */
+  --accent:          #818cf8;
+  --accent-hover:    #a5b4fc;
+  --accent-dim:      rgba(129, 140, 248, 0.08);
+  --accent-ring:     rgba(129, 140, 248, 0.25);
+
+  /* Status */
+  --success: #4ade80;
+  --danger:  #f87171;
+  --warning: #fbbf24;
+
+  /* Transitions */
+  --t-fast:   120ms ease;
+  --t-normal: 200ms ease;
+  --t-slow:   300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Base Layer ─────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--surface-bg);
+    background-image:
+      radial-gradient(ellipse 100% 50% at 50% -10%, rgba(129,140,248,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(129,140,248,0.03) 0%, transparent 50%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--surface-muted);
+    border-radius: 9999px;
+    transition: background-color var(--t-fast);
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--text-tertiary); }
+
+  ::selection {
+    background-color: rgba(129, 140, 248, 0.2);
+    color: var(--text-primary);
+  }
+
+  /* Focus ring */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Smoother button interactions */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ─── Component Layer ────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── Input primitive ── */
+  .input-base {
+    @apply w-full px-3.5 py-2.5 rounded-lg text-sm outline-none transition-all duration-150;
+    background-color: var(--surface-overlay);
+    border: 1px solid var(--surface-border);
+    color: var(--text-primary);
+  }
+  .input-base::placeholder { color: var(--text-tertiary); }
+  .input-base:hover:not(:disabled) { border-color: var(--surface-muted); }
+  .input-base:focus {
+    border-color: rgba(129, 140, 248, 0.5);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+  .input-base:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* ── Glass surfaces ── */
+  .glass {
+    background: rgba(17, 17, 19, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-card {
+    background: rgba(17, 17, 19, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 1rem;
+  }
+
+  .glass-panel {
+    background: rgba(9, 9, 11, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* ── Hairline separator ── */
+  .divider { border-top: 1px solid var(--surface-border); }
+
+  /* ── Skeleton loader ── */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--surface-overlay) 25%,
+      #222226 50%,
+      var(--surface-overlay) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite linear;
+    @apply rounded-md;
+  }
+
+  /* ── Scroll area ── */
+  .scroll-area {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-muted) transparent;
+  }
+
+  /* ── Label mono ── */
+  .label-mono {
+    @apply font-mono text-[10px] tracking-widest uppercase;
+    color: var(--text-tertiary);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Surface badge ── */
+  .badge {
+    @apply font-mono text-[9px] px-1.5 py-0.5 rounded border uppercase tracking-wide;
+  }
+
+  /* ── Button base ── */
+  .btn-ghost {
+    @apply flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border transition-all duration-150;
+    border-color: var(--surface-border);
+    color: var(--text-tertiary);
+  }
+  .btn-ghost:hover {
+    color: var(--text-secondary);
+    border-color: var(--surface-muted);
+    background-color: rgba(255,255,255,0.03);
+  }
+  .btn-ghost.active {
+    border-color: rgba(129, 140, 248, 0.35);
+    background-color: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  /* ── Accent button ── */
+  .btn-accent {
+    @apply flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-all duration-150;
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-accent:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-accent:active:not(:disabled) { transform: scale(0.98); }
+  .btn-accent:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── Chat bubble ── */
+  .bubble-user {
+    background: linear-gradient(135deg, #1e1e2e 0%, #1a1a2e 100%);
+    border: 1px solid rgba(129, 140, 248, 0.15);
+    @apply px-4 py-3 rounded-2xl rounded-tr-sm text-sm leading-relaxed;
+    color: var(--text-primary);
+  }
+
+  .bubble-ai {
+    background-color: var(--surface-raised);
+    border: 1px solid var(--surface-border);
+    @apply px-4 py-3 rounded-2xl rounded-tl-sm text-sm leading-relaxed;
+    color: var(--text-secondary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  /* ── Dashboard panel (main + sidebar shared shell) ── */
+  .panel {
+    background: rgba(11, 11, 14, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* ── Hairline separator (subtle variant used inside panels) ── */
+  .panel-divider { border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+  .panel-divider-xs { border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+
+  /* ── Header accent icon (small indigo-tinted icon container) ── */
+  .header-icon {
+    background: rgba(129, 140, 248, 0.08);
+    border: 1px solid rgba(129, 140, 248, 0.15);
+  }
+
+  /* ── Live status dot ── */
+  .status-dot-live { background: var(--success); }
+
+  /* ── Docs drawer ── */
+  .docs-drawer {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(9, 9, 11, 0.5);
+  }
+
+  /* ── Doc row inside drawer ── */
+  .doc-row {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+    transition: border-color 100ms ease;
+  }
+  .doc-row:hover { border-color: rgba(255, 255, 255, 0.06); }
+
+  /* ── File-type badges ── */
+  .badge-pdf {
+    border-color: rgba(248, 113, 113, 0.2);
+    color: rgba(248, 113, 113, 0.7);
+    background: rgba(248, 113, 113, 0.05);
+  }
+  .badge-txt {
+    border-color: rgba(129, 140, 248, 0.2);
+    color: rgba(129, 140, 248, 0.7);
+    background: rgba(129, 140, 248, 0.05);
+  }
+
+  /* ── Typing / streaming indicator bubble ── */
+  .typing-bubble {
+    background: var(--surface-raised);
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  .typing-dot { background: var(--text-tertiary); }
+
+  /* ── Empty state: doc icon container ── */
+  .empty-icon {
+    background: rgba(99, 102, 241, 0.07);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    box-shadow: 0 0 32px rgba(99, 102, 241, 0.10);
+  }
+
+  /* ── Empty state: spark badge ── */
+  .empty-icon-spark {
+    background: rgba(99, 102, 241, 0.9);
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+  }
+
+  /* ── Empty state: inline code token ── */
+  .code-token {
+    background: rgba(99, 102, 241, 0.08);
+    font-size: 0.75rem;
+  }
+
+  /* ── Empty state: Upload button ── */
+  .btn-upload {
+    background: rgba(99, 102, 241, 0.10);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: rgba(255, 255, 255, 0.9);
+    transition: background var(--t-fast), border-color var(--t-fast);
+  }
+  .btn-upload:hover {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.6);
+  }
+
+  /* ── Input form border (top hairline) ── */
+  .input-form { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+
+  /* ── File chips tray ── */
+  .file-chips-tray {
+    background: rgba(9, 9, 11, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* ── Single file chip ── */
+  .file-chip {
+    background: var(--surface-overlay);
+    border: 1px solid var(--surface-border);
+  }
+
+  /* ── Input row wrapper (the focusable container) ── */
+  .input-row {
+    background: var(--surface-overlay);
+    border: 1px solid var(--surface-border);
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  }
+  .input-row:focus-within {
+    border-color: rgba(129, 140, 248, 0.4);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+
+  /* ── Attach button: idle vs. active (has files) ── */
+  .btn-attach {
+    background: transparent;
+    color: var(--text-tertiary);
+    transition: background var(--t-fast), color var(--t-fast);
+  }
+  .btn-attach:hover:not(:disabled) {
+    background: rgba(129, 140, 248, 0.06);
+    color: var(--text-secondary);
+  }
+  .btn-attach.has-files {
+    background: rgba(129, 140, 248, 0.1);
+    color: var(--accent);
+  }
+
+  /* ── Send button: active vs. idle ── */
+  .btn-send {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    transition: background var(--t-fast), box-shadow var(--t-fast);
+  }
+  .btn-send.can-submit {
+    background: rgb(99, 102, 241);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 0 14px rgba(99, 102, 241, 0.35);
+  }
+
+  /* ── Sidebar: user avatar ── */
+  .sidebar-avatar {
+    background: rgba(129, 140, 248, 0.1);
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* ── Sidebar: new conversation button ── */
+  .btn-new-chat {
+    background: transparent;
+    border: 1px solid rgba(99, 102, 241, 0.5);
+    color: rgba(255, 255, 255, 0.85);
+    transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+  }
+  .btn-new-chat:hover {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.8);
+    color: #fff;
+  }
+
+  /* ── Sidebar: empty session placeholder icon ── */
+  .sidebar-empty-icon {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* ── Sidebar: session item — active ── */
+  .session-item-active {
+    background: rgba(129, 140, 248, 0.07);
+    border: 1px solid rgba(129, 140, 248, 0.12);
+  }
+
+  /* ── Sidebar: session item — idle ── */
+  .session-item-idle {
+    background: transparent;
+    border: 1px solid transparent;
+    transition: background var(--t-fast), border-color var(--t-fast);
+  }
+  .session-item-idle:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* ── Sidebar: active accent indicator ── */
+  .session-accent-line { background: var(--accent); }
+
+  /* ── Sidebar: delete button bg ── */
+  .btn-delete-session { background: rgba(255, 255, 255, 0.03); }
+}
+
+/* ─── Utility Layer ──────────────────────────────────────────────────────── */
+@layer utilities {
+  .animate-in {
+    animation: fadeIn 0.25s ease-out, slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .accent-gradient {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .inset-highlight {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .ring-accent-sm {
+    box-shadow: 0 0 0 2px var(--accent-ring);
+  }
+}
