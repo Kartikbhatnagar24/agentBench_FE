@@ -17,7 +17,7 @@ export const IndexedDocsDrawer: React.FC<IndexedDocsDrawerProps> = ({
     <div className="docs-drawer flex-shrink-0 animate-slide-down">
       {/* Drawer header */}
       <div className="px-5 py-3 flex items-center justify-between">
-        <p className="label-mono">Indexed documents</p>
+        <p className="label-mono">Indexed Documents</p>
         <p className="font-mono text-[10px] text-text-tertiary">
           {docs.length} file{docs.length !== 1 ? 's' : ''}
         </p>

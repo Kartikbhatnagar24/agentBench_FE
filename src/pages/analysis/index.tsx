@@ -82,6 +82,10 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ user, addToast }) =>
               avgLatencyMs={overview.summary.avg_latency_ms}
               retryRate={overview.summary.retry_rate}
               avgQuality={averageQuality}
+              avgFaithfulness={overview.summary.avg_faithfulness}
+              avgAnswerRelevancy={overview.summary.avg_answer_relevancy}
+              avgConfidenceScore={overview.summary.avg_confidence_score}
+              pipelineScore={overview.summary.pipeline_score}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">

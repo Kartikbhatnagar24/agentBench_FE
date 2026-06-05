@@ -1,5 +1,11 @@
 import React from 'react';
-import { formatPercent, formatScore } from '../../../utils/Analysis';
+import {
+  formatPercent,
+  formatScore,
+  getScoreTextColorClass,
+  getScoreBgClass,
+  getAverageBadgeClass,
+} from '../../../utils/Analysis';
 
 interface ScoreShapeProps {
   avgFaithfulness: number;
@@ -21,10 +27,10 @@ export const ScoreShape: React.FC<ScoreShapeProps> = ({
   ];
 
   return (
-    <section className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.025] p-4">
+    <section className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 animate-in">
       <div className="flex items-center justify-between">
-        <p className="label-mono">Score shape</p>
-        <span className="badge border-accent/20 text-accent bg-accent-dim">
+        <p className="label-mono">Score Shape</p>
+        <span className={`badge border ${getAverageBadgeClass(avgQuality)}`}>
           avg {formatPercent(avgQuality)}
         </span>
       </div>
@@ -33,11 +39,13 @@ export const ScoreShape: React.FC<ScoreShapeProps> = ({
           <div key={item.label}>
             <div className="flex items-center justify-between text-xs">
               <span className="text-text-secondary">{item.label}</span>
-              <span className="font-mono text-text-secondary">{formatScore(item.value)}</span>
+              <span className={`font-mono font-medium ${getScoreTextColorClass(item.value)}`}>
+                {formatScore(item.value)}
+              </span>
             </div>
             <div className="mt-2 h-2 rounded-full bg-white/[0.05] overflow-hidden">
               <div
-                className="h-full rounded-full bg-accent"
+                className={`h-full rounded-full transition-all duration-300 ${getScoreBgClass(item.value)}`}
                 style={{ width: `${Math.max(0, Math.min(100, item.value * 100))}%` }}
               />
             </div>

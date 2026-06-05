@@ -7,7 +7,6 @@ import type { RootState } from './store';
 import type { SignUpDto, SignInDto, UserSession } from './types/chat';
 import type { ToastMessage } from './components/common/feedback/Toast';
 import { Toast } from './components/common/feedback/Toast';
-import { Layout } from './layouts/Layout';
 import { AppRouter } from './routes';
 import { Spinner } from './components/common/spinners/Spinner';
 
@@ -79,7 +78,7 @@ function App() {
   }
 
   return (
-    <Layout user={user} onLogout={handleLogout}>
+    <>
       <AppRouter
         user={user}
         onLogout={handleLogout}
@@ -90,7 +89,7 @@ function App() {
 
       {/* Floating System alerts */}
       <Toast toasts={toasts} onDismiss={removeToast} />
-    </Layout>
+    </>
   );
 }
 

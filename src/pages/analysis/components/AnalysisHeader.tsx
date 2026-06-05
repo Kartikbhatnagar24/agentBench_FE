@@ -8,8 +8,8 @@ export const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({ onBackToChat }) 
   return (
     <div className="panel-divider p-5 flex items-start justify-between gap-4">
       <div>
-        <p className="label-mono">Evaluation console</p>
-        <h1 className="mt-2 text-xl font-semibold text-text-primary tracking-tight">RAG analysis</h1>
+        <p className="label-mono">Evaluation Console</p>
+        <h1 className="mt-2 text-xl font-semibold text-text-primary tracking-tight">RAG Analysis</h1>
         <p className="mt-1 text-xs text-text-tertiary max-w-2xl">
           Aggregated from stored RAGAS metrics, pipeline confidence, retries, and latency.
         </p>

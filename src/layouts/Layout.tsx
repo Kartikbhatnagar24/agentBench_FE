@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import type { UserSession } from '../types/chat';
 
 interface LayoutProps {
@@ -8,6 +9,8 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
+  const location = useLocation();
+
   return (
     <div className="min-h-screen flex flex-col bg-surface-bg text-text-primary font-sans animate-fade-in">
 
@@ -43,26 +46,26 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
 
           {user && (
             <nav className="hidden sm:flex items-center gap-1">
-              <a
-                href="/chat"
+              <Link
+                to="/chat"
                 className={`px-2.5 py-1.5 rounded-md text-xs transition-colors duration-150 ${
-                  window.location.pathname.startsWith('/chat') || window.location.pathname === '/'
+                  location.pathname.startsWith('/chat') || location.pathname === '/'
                     ? 'text-accent bg-white/[0.04] font-medium'
                     : 'text-text-secondary hover:text-text-primary hover:bg-white/[0.03]'
                 }`}
               >
                 Chat
-              </a>
-              <a
-                href="/analysis"
+              </Link>
+              <Link
+                to="/analysis"
                 className={`px-2.5 py-1.5 rounded-md text-xs transition-colors duration-150 ${
-                  window.location.pathname.startsWith('/analysis')
+                  location.pathname.startsWith('/analysis')
                     ? 'text-accent bg-white/[0.04] font-medium'
                     : 'text-text-secondary hover:text-text-primary hover:bg-white/[0.03]'
                 }`}
               >
                 Analysis
-              </a>
+              </Link>
             </nav>
           )}
         </div>

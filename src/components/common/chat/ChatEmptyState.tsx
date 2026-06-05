@@ -1,5 +1,6 @@
 import React from 'react';
 import { Spinner } from '../spinners/Spinner';
+import { useTypingEffect } from '../../../utils/typing';
 
 interface ChatEmptyStateProps {
   chatMessage: string;
@@ -26,12 +27,24 @@ export const ChatEmptyState: React.FC<ChatEmptyStateProps> = ({
   onRemoveFile,
   onSubmit,
 }) => {
+  const fullText = "Ask METO about your documents...";
+  const typedTitle = useTypingEffect(fullText, 40, 100);
+  const typedPlaceholder = useTypingEffect(fullText, 30, 1570);
+
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-6 animate-fade-in">
       <div className="w-full max-w-2xl px-4 flex flex-col items-center">
+        {/* Logo */}
+        <div className="mb-6 flex items-center justify-center">
+          <img src="/logo.svg" alt="METO Logo" className="w-28 h-28 object-contain" />
+        </div>
+
         {/* Title */}
-        <h1 className="text-3xl font-semibold text-text-primary tracking-tight mb-8">
-          Ask me anything...
+        <h1 className="text-3xl font-semibold text-text-primary tracking-tight mb-8 min-h-[36px] flex items-center">
+          {typedTitle}
+          {typedTitle.length < fullText.length && (
+            <span className="animate-pulse ml-0.5 font-light text-accent">|</span>
+          )}
         </h1>
 
         {/* Input form panel */}
@@ -113,7 +126,7 @@ export const ChatEmptyState: React.FC<ChatEmptyStateProps> = ({
               {/* Text input */}
               <input
                 type="text"
-                placeholder="Ask me anything..."
+                placeholder={typedPlaceholder}
                 value={chatMessage}
                 onChange={(e) => onMessageChange(e.target.value)}
                 disabled={isSending || isUploading}

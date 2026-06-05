@@ -56,6 +56,7 @@ export interface AnalysisSummary {
   avg_latency_ms: number;
   retry_rate: number;
   failure_rate: number;
+  pipeline_score: number;
 }
 
 export interface StatusBreakdown {
@@ -72,6 +73,7 @@ export interface SessionAnalysis {
   avg_confidence_score: number;
   avg_latency_ms: number;
   retry_rate: number;
+  queries?: WeakQuery[];
 }
 
 export interface WeakQuery {
@@ -85,6 +87,7 @@ export interface WeakQuery {
   retry_count: number;
   latency_ms: number;
   status: string;
+  is_summary?: boolean;
 }
 
 export interface RecentMetric {

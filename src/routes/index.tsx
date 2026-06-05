@@ -5,6 +5,7 @@ import { getRoutesConfig } from './config';
 import type { SignUpDto, SignInDto, UserSession } from '../types/chat';
 import type { ToastMessage } from '../components/common/feedback/Toast';
 import { ROUTES } from './paths';
+import { Layout } from '../layouts/Layout';
 
 interface AppRouterProps {
   user: UserSession | null;
@@ -23,29 +24,31 @@ export const AppRouter: React.FC<AppRouterProps> = (props) => {
 
   return (
     <BrowserRouter>
-      <Routes>
-        {routes.map((route) => {
-          let element = route.element;
+      <Layout user={props.user} onLogout={props.onLogout}>
+        <Routes>
+          {routes.map((route) => {
+            let element = route.element;
 
-          // Apply access guards dynamically
-          if (route.protected) {
-            element = <ProtectedRoute>{element}</ProtectedRoute>;
-          } else if (route.publicOnly) {
-            element = <PublicRoute>{element}</PublicRoute>;
-          }
+            // Apply access guards dynamically
+            if (route.protected) {
+              element = <ProtectedRoute>{element}</ProtectedRoute>;
+            } else if (route.publicOnly) {
+              element = <PublicRoute>{element}</PublicRoute>;
+            }
 
-          return (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={element}
-            />
-          );
-        })}
+            return (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={element}
+              />
+            );
+          })}
 
-        {/* Fallback to Dashboard/Base path if route does not exist */}
-        <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-      </Routes>
+          {/* Fallback to Dashboard/Base path if route does not exist */}
+          <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   );
 };

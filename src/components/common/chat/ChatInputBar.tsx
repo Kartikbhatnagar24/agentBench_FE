@@ -1,5 +1,6 @@
 import React from 'react';
 import { Spinner } from '../spinners/Spinner';
+import { useTypingEffect } from '../../../utils/typing';
 
 interface ChatInputBarProps {
   chatMessage: string;
@@ -26,6 +27,9 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
   onRemoveFile,
   onSubmit,
 }) => {
+  const fullText = 'Ask METO about your documents...';
+  const typedPlaceholder = useTypingEffect(fullText, 30, 150);
+
   return (
     <form onSubmit={onSubmit} className="input-form flex-shrink-0 p-4">
 
@@ -104,7 +108,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           placeholder={
             attachedFiles.length > 0
               ? 'Add a message, or send to index…'
-              : 'Ask something about your documents…'
+              : typedPlaceholder
           }
           value={chatMessage}
           onChange={(e) => onMessageChange(e.target.value)}
