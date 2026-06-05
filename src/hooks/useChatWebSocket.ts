@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { getApiUrl } from '../services/api/client';
 import { type ChatSession, MessageSender } from '../types/chat';
+import { AuthApi } from '../services/api/auth';
 
 interface UseChatWebSocketProps {
   activeSessionId: string | undefined;
@@ -32,7 +33,9 @@ export const useChatWebSocket = ({
     }
     
     // Create new WebSocket connection
-    const wsUrl = getApiUrl(`/chat/sessions/${sessionId}/ws`).replace(/^http/, 'ws');
+    const active = AuthApi.getActiveSession();
+    const tokenQuery = active && active.token ? `?token=${encodeURIComponent(active.token)}` : '';
+    const wsUrl = getApiUrl(`/chat/sessions/${sessionId}/ws${tokenQuery}`).replace(/^http/, 'ws');
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     connectedSessionId.current = sessionId;

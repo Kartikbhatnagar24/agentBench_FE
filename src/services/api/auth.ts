@@ -27,7 +27,7 @@ export const AuthApi = {
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
-      token: `mock-jwt-token-${Math.random().toString(36).substring(2)}`,
+      token: user.token || `mock-jwt-token-${Math.random().toString(36).substring(2)}`,
     };
 
     localStorage.setItem(STORAGE_KEYS.ACTIVE_USER, JSON.stringify(session));
@@ -61,7 +61,7 @@ export const AuthApi = {
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
-      token: `mock-jwt-token-${Math.random().toString(36).substring(2)}`,
+      token: user.token || `mock-jwt-token-${Math.random().toString(36).substring(2)}`,
     };
 
     localStorage.setItem(STORAGE_KEYS.ACTIVE_USER, JSON.stringify(session));
@@ -89,5 +89,23 @@ export const AuthApi = {
       throw new Error(errData.detail || 'Failed to retrieve user details.');
     }
     return res.json();
+  },
+
+  async resetPassword(email: string, newPassword: string): Promise<void> {
+    const res = await fetch(getApiUrl('/auth/reset-password'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        new_password: newPassword,
+      }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Failed to reset password. Please verify your email.');
+    }
   },
 };

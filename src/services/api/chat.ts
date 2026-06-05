@@ -1,5 +1,5 @@
 import type { ChatSession, BackendChatSession } from "../../types/chat";
-import { getApiUrl, mapSession, fetchDeduplicated } from "./client";
+import { getApiUrl, mapSession, fetchDeduplicated, apiFetch } from "./client";
 
 export const ChatApi = {
   async getChatSessions(userId: string): Promise<ChatSession[]> {
@@ -20,7 +20,7 @@ export const ChatApi = {
   },
 
   async createChatSession(userId: string, firstMessage: string): Promise<ChatSession> {
-    const res = await fetch(getApiUrl('/chat/create-session'), {
+    const res = await apiFetch(getApiUrl('/chat/create-session'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export const ChatApi = {
   },
 
   async deleteChatSession(sessionId: string, userId: string): Promise<void> {
-    const res = await fetch(getApiUrl(`/chat/sessions/${encodeURIComponent(sessionId)}?user_id=${encodeURIComponent(userId)}`), {
+    const res = await apiFetch(getApiUrl(`/chat/sessions/${encodeURIComponent(sessionId)}?user_id=${encodeURIComponent(userId)}`), {
       method: 'DELETE',
     });
 

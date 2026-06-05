@@ -1,5 +1,5 @@
 import type { DocumentAttachment } from "../../types/chat";
-import { getApiUrl, fetchDeduplicated } from "./client";
+import { getApiUrl, fetchDeduplicated, apiFetch } from "./client";
 import { AuthApi } from "./auth";
 
 export const DocumentApi = {
@@ -30,7 +30,7 @@ export const DocumentApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch(
+    const res = await apiFetch(
       getApiUrl(`/chat/upload?user_id=${encodeURIComponent(active.id)}&session_id=${encodeURIComponent(sessionId)}`),
       {
         method: 'POST',
@@ -48,7 +48,7 @@ export const DocumentApi = {
       id: String(doc.file_id),
       name: doc.filename,
       size: `${(file.size / 1024).toFixed(1)} KB`,
-      content: doc.content || '',
+      content: '',
       uploaded_at: new Date().toString(),
     };
   },
@@ -57,7 +57,7 @@ export const DocumentApi = {
     const active = AuthApi.getActiveSession();
     if (!active) throw new Error('Unauthorized');
 
-    const res = await fetch(
+    const res = await apiFetch(
       getApiUrl(`/chat/documents/${encodeURIComponent(docId)}?user_id=${encodeURIComponent(active.id)}&session_id=${encodeURIComponent(sessionId)}`),
       {
         method: 'DELETE',

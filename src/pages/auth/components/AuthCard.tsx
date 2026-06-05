@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { SignUpDto, SignInDto } from '../../../types/chat';
 import { Spinner } from '../../../components/common/spinners/Spinner';
+import { ApiService } from '../../../services/api';
 
 interface AuthCardProps {
   onLogin: (data: SignInDto) => Promise<void>;
@@ -17,6 +18,33 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onLogin, onSignUp }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [successText, setSuccessText] = useState<string | null>(null);
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLoading) return;
+    setErrorText(null);
+    setSuccessText(null);
+
+    if (!email || !password) { setErrorText('Please enter both email and new password.'); return; }
+    if (!validateEmail(email)) { setErrorText('Please enter a valid email address.'); return; }
+    if (password.length < 6) { setErrorText('New password must be at least 6 characters.'); return; }
+    if (password !== confirmPassword) { setErrorText('Passwords do not match.'); return; }
+
+    setIsLoading(true);
+    try {
+      await ApiService.resetPassword(email, password);
+      setSuccessText('Password updated successfully. You can now sign in.');
+      setPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setErrorText(errorMsg || 'Failed to reset password.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleTabSwitch = (isLogin: boolean) => {
     if (isLoading) return;
@@ -42,7 +70,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onLogin, onSignUp }) => {
       } else {
         if (!firstName || !lastName) { setErrorText('First and last names are required.'); setIsLoading(false); return; }
         if (password !== confirmPassword) { setErrorText('Passwords do not match.'); setIsLoading(false); return; }
-        await onSignUp({ email, password, first_name: firstName, last_name: lastName });
+        await onSignUp({ email, password, confirm_password: confirmPassword, first_name: firstName, last_name: lastName });
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -60,24 +88,17 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onLogin, onSignUp }) => {
       {/* ── Logo + wordmark ── */}
       <div className="text-center mb-8">
         {/* Logo */}
-        <div
-          className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5"
-          style={{
-            background: 'linear-gradient(135deg, rgba(129,140,248,0.15) 0%, rgba(129,140,248,0.04) 100%)',
-            border: '1px solid rgba(129,140,248,0.25)',
-            boxShadow: '0 0 32px rgba(129,140,248,0.12), inset 0 1px 0 rgba(255,255,255,0.06)',
-          }}
-        >
-          <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-1.5l1.359-1.359m0 0A3.75 3.75 0 109.75 9.75v.119c0 .085.008.17.025.254l1.085 4.249z" />
-          </svg>
-        </div>
+        <img
+          src="/logo.svg"
+          className="h-10 w-auto mx-auto mb-5 animate-pulse-subtle"
+          alt="Logo"
+        />
         <h1
           className="text-2xl font-semibold tracking-tight mb-1"
           id="auth-title"
           style={{ color: 'var(--text-primary)' }}
         >
-          SleekRAG
+          METO
         </h1>
         <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Document intelligence workspace
@@ -104,29 +125,43 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onLogin, onSignUp }) => {
             border: '1px solid rgba(255,255,255,0.06)',
           }}
         >
-          {[
-            { label: 'Sign in', active: isLoginTab, onClick: () => handleTabSwitch(true) },
-            { label: 'Create account', active: !isLoginTab, onClick: () => handleTabSwitch(false) },
-          ].map(({ label, active, onClick }) => (
-            <button
-              key={label}
-              type="button"
-              onClick={onClick}
-              className="flex-1 py-2 text-xs font-medium rounded-lg transition-all duration-200"
-              style={active ? {
-                background: 'rgba(129,140,248,0.1)',
-                color: 'var(--text-primary)',
-                border: '1px solid rgba(129,140,248,0.15)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-              } : {
-                background: 'transparent',
-                color: 'var(--text-tertiary)',
-                border: '1px solid transparent',
+          {!showResetForm ? (
+            <div
+              className="flex p-1 rounded-xl mb-6"
+              style={{
+                background: 'rgba(9,9,11,0.8)',
+                border: '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              {label}
-            </button>
-          ))}
+              {[
+                { label: 'Sign in', active: isLoginTab, onClick: () => handleTabSwitch(true) },
+                { label: 'Create account', active: !isLoginTab, onClick: () => handleTabSwitch(false) },
+              ].map(({ label, active, onClick }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={onClick}
+                  className="flex-1 py-2 text-xs font-medium rounded-lg transition-all duration-200"
+                  style={active ? {
+                    background: 'rgba(129,140,248,0.1)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid rgba(129,140,248,0.15)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                  } : {
+                    background: 'transparent',
+                    color: 'var(--text-tertiary)',
+                    border: '1px solid transparent',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <h2 className="text-center text-xs font-mono uppercase tracking-widest text-text-secondary mb-6">
+              Reset Password
+            </h2>
+          )}
         </div>
 
         {/* Error */}
@@ -146,87 +181,60 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onLogin, onSignUp }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* Signup-only fields */}
-          {!isLoginTab && (
-            <div className="grid grid-cols-2 gap-3 animate-slide-up">
-              <div>
-                <label className={labelCls} htmlFor="first-name">First name</label>
-                <input
-                  id="first-name"
-                  type="text"
-                  placeholder="Jane"
-                  disabled={isLoading}
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="input-base disabled:opacity-50"
-                  required
-                />
-              </div>
-              <div>
-                <label className={labelCls} htmlFor="last-name">Last name</label>
-                <input
-                  id="last-name"
-                  type="text"
-                  placeholder="Smith"
-                  disabled={isLoading}
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="input-base disabled:opacity-50"
-                  required
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Email */}
-          <div>
-            <label className={labelCls} htmlFor="email-input">Email</label>
-            <input
-              id="email-input"
-              type="email"
-              placeholder="you@company.com"
-              disabled={isLoading}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input-base disabled:opacity-50"
-              required
-            />
+        {/* Success */}
+        {successText && (
+          <div
+            className="flex gap-2.5 px-3.5 py-3 rounded-xl mb-5 text-xs animate-slide-up"
+            style={{
+              background: 'rgba(74,222,128,0.06)',
+              border: '1px solid rgba(74,222,128,0.2)',
+              color: 'var(--success)',
+            }}
+          >
+            <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{successText}</span>
           </div>
+        )}
 
-          {/* Password */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className={labelCls} htmlFor="password-input" style={{ marginBottom: 0 }}>Password</label>
-              {isLoginTab && (
-                <button
-                  type="button"
-                  onClick={() => alert('Password reset not yet implemented.')}
-                  className="font-mono text-[10px] text-text-tertiary hover:text-text-secondary transition-colors"
-                >
-                  Forgot?
-                </button>
-              )}
-            </div>
-            <input
-              id="password-input"
-              type="password"
-              placeholder="••••••••"
-              disabled={isLoading}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-base disabled:opacity-50"
-              required
-            />
-          </div>
-
-          {/* Confirm password */}
-          {!isLoginTab && (
-            <div className="animate-slide-up">
-              <label className={labelCls} htmlFor="confirm-password-input">Confirm password</label>
+        {showResetForm ? (
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            {/* Email */}
+            <div>
+              <label className={labelCls} htmlFor="reset-email-input">Email</label>
               <input
-                id="confirm-password-input"
+                id="reset-email-input"
+                type="email"
+                placeholder="you@company.com"
+                disabled={isLoading}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input-base disabled:opacity-50"
+                required
+              />
+            </div>
+
+            {/* New Password */}
+            <div>
+              <label className={labelCls} htmlFor="reset-password-input">New Password</label>
+              <input
+                id="reset-password-input"
+                type="password"
+                placeholder="••••••••"
+                disabled={isLoading}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-base disabled:opacity-50"
+                required
+              />
+            </div>
+
+            {/* Confirm New Password */}
+            <div>
+              <label className={labelCls} htmlFor="reset-confirm-password-input">Confirm New Password</label>
+              <input
+                id="reset-confirm-password-input"
                 type="password"
                 placeholder="••••••••"
                 disabled={isLoading}
@@ -236,27 +244,161 @@ export const AuthCard: React.FC<AuthCardProps> = ({ onLogin, onSignUp }) => {
                 required
               />
             </div>
-          )}
 
-          {/* Submit */}
-          <button
-            id="auth-submit-btn"
-            type="submit"
-            disabled={isLoading}
-            className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              background: isLoading ? 'var(--surface-muted)' : 'var(--accent)',
-              color: 'white',
-              boxShadow: isLoading ? 'none' : '0 0 20px rgba(129,140,248,0.2)',
-            }}
-          >
-            {isLoading ? (
-              <><Spinner size="sm" color="white" /><span>Verifying…</span></>
-            ) : (
-              <span>{isLoginTab ? 'Sign in' : 'Create account'}</span>
+            {/* Submit */}
+            <button
+              id="reset-submit-btn"
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: isLoading ? 'var(--surface-muted)' : 'var(--accent)',
+                color: 'white',
+                boxShadow: isLoading ? 'none' : '0 0 20px rgba(129,140,248,0.2)',
+              }}
+            >
+              {isLoading ? (
+                <><Spinner size="sm" color="white" /><span>Updating…</span></>
+              ) : (
+                <span>Update password</span>
+              )}
+            </button>
+
+            {/* Back to sign in */}
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={() => {
+                setShowResetForm(false);
+                setErrorText(null);
+                setSuccessText(null);
+                setPassword('');
+                setConfirmPassword('');
+              }}
+              className="w-full text-center text-xs font-mono text-text-tertiary hover:text-text-secondary transition-colors mt-2"
+            >
+              &larr; Back to sign in
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* Signup-only fields */}
+            {!isLoginTab && (
+              <div className="grid grid-cols-2 gap-3 animate-slide-up">
+                <div>
+                  <label className={labelCls} htmlFor="first-name">First name</label>
+                  <input
+                    id="first-name"
+                    type="text"
+                    placeholder="Jane"
+                    disabled={isLoading}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="input-base disabled:opacity-50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className={labelCls} htmlFor="last-name">Last name</label>
+                  <input
+                    id="last-name"
+                    type="text"
+                    placeholder="Smith"
+                    disabled={isLoading}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="input-base disabled:opacity-50"
+                    required
+                  />
+                </div>
+              </div>
             )}
-          </button>
-        </form>
+
+            {/* Email */}
+            <div>
+              <label className={labelCls} htmlFor="email-input">Email</label>
+              <input
+                id="email-input"
+                type="email"
+                placeholder="you@company.com"
+                disabled={isLoading}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input-base disabled:opacity-50"
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={labelCls} htmlFor="password-input" style={{ marginBottom: 0 }}>Password</label>
+                {isLoginTab && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowResetForm(true);
+                      setErrorText(null);
+                      setSuccessText(null);
+                      setPassword('');
+                      setConfirmPassword('');
+                    }}
+                    className="font-mono text-[10px] text-text-tertiary hover:text-text-secondary transition-colors"
+                  >
+                    Forgot?
+                  </button>
+                )}
+              </div>
+              <input
+                id="password-input"
+                type="password"
+                placeholder="••••••••"
+                disabled={isLoading}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-base disabled:opacity-50"
+                required
+              />
+            </div>
+
+            {/* Confirm password */}
+            {!isLoginTab && (
+              <div className="animate-slide-up">
+                <label className={labelCls} htmlFor="confirm-password-input">Confirm password</label>
+                <input
+                  id="confirm-password-input"
+                  type="password"
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="input-base disabled:opacity-50"
+                  required
+                />
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              id="auth-submit-btn"
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: isLoading ? 'var(--surface-muted)' : 'var(--accent)',
+                color: 'white',
+                boxShadow: isLoading ? 'none' : '0 0 20px rgba(129,140,248,0.2)',
+              }}
+            >
+              {isLoading ? (
+                <><Spinner size="sm" color="white" /><span>Verifying…</span></>
+              ) : (
+                <span>{isLoginTab ? 'Sign in' : 'Create account'}</span>
+              )}
+            </button>
+          </form>
+        )}
       </div>
 
       {/* Footer */}

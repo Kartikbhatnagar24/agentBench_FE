@@ -10,7 +10,29 @@ export const getApiUrl = (path: string) => {
 };
 
 export const STORAGE_KEYS = {
-  ACTIVE_USER: 'sleekrag_active_user',
+  ACTIVE_USER: 'active_user',
+};
+
+const getAuthHeaders = (): HeadersInit => {
+  const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE_USER);
+  if (!raw) return {};
+  try {
+    const session = JSON.parse(raw);
+    if (session && session.token) {
+      return { 'Authorization': `Bearer ${session.token}` };
+    }
+  } catch {
+    // ignore
+  }
+  return {};
+};
+
+export const apiFetch = (url: string, options: RequestInit = {}): Promise<Response> => {
+  const headers = {
+    ...getAuthHeaders(),
+    ...options.headers,
+  };
+  return fetch(url, { ...options, headers });
 };
 
 // Keep track of active concurrent GET requests to avoid duplicate fetches
@@ -20,12 +42,12 @@ export const fetchDeduplicated = async (url: string, options?: RequestInit): Pro
   const method = options?.method || 'GET';
   
   if (method.toUpperCase() !== 'GET') {
-    return fetch(url, options);
+    return apiFetch(url, options);
   }
 
   const cacheKey = url;
   if (!inFlightGetRequests.has(cacheKey)) {
-    const promise = fetch(url, options);
+    const promise = apiFetch(url, options);
     
     // Once the fetch completes (success or failure), remove it from the cache
     // so future requests fetch fresh data.

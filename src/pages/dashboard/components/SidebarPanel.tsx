@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ChatSession, UserSession } from '../../../types/chat';
+import { AvatarPanel } from '@/components/common/chat/Avatar';
 
 interface SidebarPanelProps {
   user: UserSession;
@@ -23,24 +24,6 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
   return (
     <aside className="panel md:col-span-3 flex flex-col overflow-hidden">
 
-      {/* ── User identity ── */}
-      <div className="panel-divider p-4">
-        <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div className="sidebar-avatar w-9 h-9 rounded-xl flex items-center justify-center font-mono text-xs font-semibold text-accent select-none flex-shrink-0">
-            {user.first_name[0]}{user.last_name[0]}
-          </div>
-          <div className="flex-grow min-w-0">
-            <p className="text-sm font-medium text-text-primary truncate leading-none">
-              {user.first_name} {user.last_name}
-            </p>
-            <p className="text-[10px] font-mono text-text-tertiary mt-1 truncate" title={user.email}>
-              {user.email}
-            </p>
-          </div>
-
-        </div>
-      </div>
 
       {/* ── New chat button ── */}
       <div className="panel-divider-xs p-3">
@@ -123,6 +106,22 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
             );
           })
         )}
+      </div>
+      {/* ── User identity ── */}
+      <div className="panel-divider p-4">
+        <div className="flex items-center gap-3">
+          {/* Avatar */}
+          <AvatarPanel firstName={user.first_name} lastName={user.last_name} />
+          <div className="flex-grow min-w-0">
+            <p className="text-sm font-medium text-text-primary truncate leading-none">
+              {user.first_name} {user.last_name}
+            </p>
+            <p className="text-[10px] font-mono text-text-tertiary mt-1 truncate" title={user.email}>
+              {user.email}
+            </p>
+          </div>
+
+        </div>
       </div>
     </aside>
   );

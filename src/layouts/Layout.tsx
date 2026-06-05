@@ -25,20 +25,10 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
         {/* Wordmark */}
         <div className="flex items-center gap-3 select-none">
           {/* Logo icon */}
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, rgba(129,140,248,0.2) 0%, rgba(129,140,248,0.06) 100%)',
-              border: '1px solid rgba(129,140,248,0.25)',
-            }}
-          >
-            <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-1.5l1.359-1.359m0 0A3.75 3.75 0 109.75 9.75v.119c0 .085.008.17.025.254l1.085 4.249z" />
-            </svg>
-          </div>
+          <img src="/logo.svg" className="h-6 w-auto flex-shrink-0" alt="Logo" />
           <div className="flex items-baseline gap-2">
             <span className="font-sans font-semibold text-sm text-text-primary tracking-tight">
-              SleekRAG
+              METO
             </span>
             <span
               className="font-mono text-[9px] text-text-tertiary px-1.5 py-0.5 rounded"
