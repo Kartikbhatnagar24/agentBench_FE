@@ -12,7 +12,7 @@ export const SessionBreakdown: React.FC<SessionBreakdownProps> = ({ sessions, on
     <aside className="panel xl:col-span-4 flex flex-col overflow-hidden">
       <div className="panel-divider p-4">
         <p className="label-mono">Sessions</p>
-        <p className="mt-2 text-sm font-medium text-text-primary">Conversation breakdown</p>
+        <p className="mt-2 text-sm font-medium text-text-primary">Chat breakdown</p>
       </div>
       <div className="scroll-area flex-1 p-3 space-y-2">
         {sessions.length ? (

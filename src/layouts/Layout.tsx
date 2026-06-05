@@ -22,41 +22,53 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
           boxShadow: '0 1px 0 rgba(255,255,255,0.03)',
         }}
       >
-        {/* Wordmark */}
-        <div className="flex items-center gap-3 select-none">
-          {/* Logo icon */}
-          <img src="/logo.svg" className="h-6 w-auto flex-shrink-0" alt="Logo" />
-          <div className="flex items-baseline gap-2">
-            <span className="font-sans font-semibold text-sm text-text-primary tracking-tight">
-              METO
-            </span>
-            <span
-              className="font-mono text-[9px] text-text-tertiary px-1.5 py-0.5 rounded"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
-            >
-              v0.1
-            </span>
+        {/* Left Side: Logo & Navigation */}
+        <div className="flex items-center gap-6">
+          {/* Wordmark */}
+          <div className="flex items-center gap-3 select-none">
+            {/* Logo icon */}
+            <img src="/logo.svg" className="h-6 w-auto flex-shrink-0" alt="Logo" />
+            <div className="flex items-baseline gap-2">
+              <span className="font-sans font-semibold text-sm text-text-primary tracking-tight">
+                METO
+              </span>
+              <span
+                className="font-mono text-[9px] text-text-tertiary px-1.5 py-0.5 rounded"
+                style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
+              >
+                v0.1
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-3">
           {user && (
             <nav className="hidden sm:flex items-center gap-1">
               <a
                 href="/chat"
-                className="px-2.5 py-1.5 rounded-md text-xs text-text-tertiary hover:text-text-primary hover:bg-white/[0.04] transition-colors duration-150"
+                className={`px-2.5 py-1.5 rounded-md text-xs transition-colors duration-150 ${
+                  window.location.pathname.startsWith('/chat') || window.location.pathname === '/'
+                    ? 'text-accent bg-white/[0.04] font-medium'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-white/[0.03]'
+                }`}
               >
                 Chat
               </a>
               <a
                 href="/analysis"
-                className="px-2.5 py-1.5 rounded-md text-xs text-text-tertiary hover:text-text-primary hover:bg-white/[0.04] transition-colors duration-150"
+                className={`px-2.5 py-1.5 rounded-md text-xs transition-colors duration-150 ${
+                  window.location.pathname.startsWith('/analysis')
+                    ? 'text-accent bg-white/[0.04] font-medium'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-white/[0.03]'
+                }`}
               >
                 Analysis
               </a>
             </nav>
           )}
+        </div>
+
+        {/* Right Side: Actions */}
+        <div className="flex items-center gap-3">
 
           {/* GitHub link */}
           <a

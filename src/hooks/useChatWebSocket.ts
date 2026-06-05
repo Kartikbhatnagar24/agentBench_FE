@@ -3,6 +3,9 @@ import { getApiUrl } from '../services/api/client';
 import { type ChatSession, MessageSender } from '../types/chat';
 import { AuthApi } from '../services/api/auth';
 
+// Module-level cache for pending messages to survive component unmount/remount (e.g., during routing transitions)
+const globalPendingMessages = new Map<string, string>();
+
 interface UseChatWebSocketProps {
   activeSessionId: string | undefined;
   setActiveSession: React.Dispatch<React.SetStateAction<ChatSession | null>>;
@@ -18,8 +21,23 @@ export const useChatWebSocket = ({
 }: UseChatWebSocketProps) => {
   const wsRef = useRef<WebSocket | null>(null);
   const connectedSessionId = useRef<string | null>(null);
-  // Holds a message to be sent as soon as the socket reaches OPEN
-  const pendingMessage = useRef<string | null>(null);
+
+  // Keep latest callbacks in refs to avoid rebuilding connectWebSocket on every render
+  const onStreamCompleteRef = useRef(onStreamComplete);
+  const setActiveSessionRef = useRef(setActiveSession);
+  const setIsSendingRef = useRef(setIsSending);
+
+  useEffect(() => {
+    onStreamCompleteRef.current = onStreamComplete;
+  }, [onStreamComplete]);
+
+  useEffect(() => {
+    setActiveSessionRef.current = setActiveSession;
+  }, [setActiveSession]);
+
+  useEffect(() => {
+    setIsSendingRef.current = setIsSending;
+  }, [setIsSending]);
 
   const connectWebSocket = useCallback((sessionId: string) => {
     // If already connected to the correct session, return it
@@ -42,21 +60,22 @@ export const useChatWebSocket = ({
 
     ws.onopen = () => {
       // Flush any message that was queued before the socket was ready
-      if (pendingMessage.current) {
-        ws.send(pendingMessage.current);
-        pendingMessage.current = null;
+      const pendingText = globalPendingMessages.get(sessionId);
+      if (pendingText) {
+        ws.send(pendingText);
+        globalPendingMessages.delete(sessionId);
       }
     };
 
     ws.onmessage = (event) => {
       const data = event.data;
       if (data === '[DONE]') {
-        setIsSending(false);
-        if (onStreamComplete) {
-          onStreamComplete();
+        setIsSendingRef.current(false);
+        if (onStreamCompleteRef.current) {
+          onStreamCompleteRef.current();
         }
       } else {
-        setActiveSession((prev) => {
+        setActiveSessionRef.current((prev) => {
           if (!prev) return prev;
           const newMessages = [...prev.messages];
           const lastMsgIndex = newMessages.length - 1;
@@ -75,18 +94,18 @@ export const useChatWebSocket = ({
 
     ws.onerror = (err) => {
       console.error("WebSocket error:", err);
-      setIsSending(false);
+      setIsSendingRef.current(false);
     };
 
     ws.onclose = () => {
       if (connectedSessionId.current === sessionId) {
         connectedSessionId.current = null;
       }
-      setIsSending(false);
+      setIsSendingRef.current(false);
     };
 
     return ws;
-  }, [setIsSending, onStreamComplete, setActiveSession]);
+  }, []);
 
   useEffect(() => {
     if (activeSessionId) {
@@ -107,15 +126,16 @@ export const useChatWebSocket = ({
    * in CONNECTING state (e.g. immediately after creating a new session).
    */
   const queueMessage = (sessionId: string, text: string) => {
-    pendingMessage.current = text;
+    globalPendingMessages.set(sessionId, text);
     const ws = connectWebSocket(sessionId);
     // If it's already open (e.g. reconnect to existing session), send now
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(text);
-      pendingMessage.current = null;
+      globalPendingMessages.delete(sessionId);
     }
     // Otherwise onopen will fire and flush pendingMessage
   };
 
   return { connectWebSocket, queueMessage, wsRef };
 };
+

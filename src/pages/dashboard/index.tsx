@@ -19,6 +19,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout, ad
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [isSessionsLoading, setIsSessionsLoading] = useState(true);
+  const [showReferences, setShowReferences] = useState<boolean>(() => {
+    return localStorage.getItem('rag_show_references') !== 'false';
+  });
+
+  const handleToggleReferences = () => {
+    setShowReferences((prev) => {
+      const next = !prev;
+      localStorage.setItem('rag_show_references', String(next));
+      return next;
+    });
+  };
   
   // Track if the initial redirect on load has been handled
   const initialRedirectDone = useRef(false);
@@ -92,6 +103,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout, ad
           onLogout={onLogout}
           onCreateNewSession={() => navigate('/chat')}
           onDeleteSession={handleDeleteSession}
+          showReferences={showReferences}
+          onToggleReferences={handleToggleReferences}
         />
 
         {/* Main Panel: Full-width Chat */}
@@ -102,6 +115,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout, ad
           setSessions={setSessions}
           user={user}
           addToast={addToast}
+          showReferences={showReferences}
         />
 
       </div>

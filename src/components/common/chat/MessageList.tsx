@@ -9,12 +9,14 @@ interface MessageListProps {
   messages: Message[];
   isSending: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement>;
+  showReferences: boolean;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
   messages,
   isSending,
   messagesEndRef,
+  showReferences,
 }) => {
   return (
     <div className="flex-grow overflow-y-auto scroll-area px-5 py-5 space-y-4">
@@ -35,7 +37,7 @@ export const MessageList: React.FC<MessageListProps> = ({
               {isUser ? (
                 <p className="whitespace-pre-wrap">{msg.text}</p>
               ) : (
-                <FormattedMessage text={msg.text} />
+                <FormattedMessage text={msg.text} showReferences={showReferences} />
               )}
             </div>
             <span className="font-mono text-[9px] text-text-tertiary mt-1.5 px-1">

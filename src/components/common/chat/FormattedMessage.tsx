@@ -45,9 +45,10 @@ export const SafeMath: React.FC<SafeMathProps> = ({ formula, inline = true }) =>
 
 interface FormattedMessageProps {
   text: string;
+  showReferences?: boolean;
 }
 
-export const FormattedMessage: React.FC<FormattedMessageProps> = ({ text }) => {
+export const FormattedMessage: React.FC<FormattedMessageProps> = ({ text, showReferences = true }) => {
   if (!text) return null;
 
   // First, split block math ($$...$$) from regular markdown blocks
@@ -67,7 +68,7 @@ export const FormattedMessage: React.FC<FormattedMessageProps> = ({ text }) => {
       );
     } else {
       // This is standard markdown text, which can have multiple lines (lists, headers, etc.)
-      blocks.push(...parseMarkdownBlocks(part, index));
+      blocks.push(...parseMarkdownBlocks(part, index, showReferences));
     }
   });
 
@@ -75,7 +76,7 @@ export const FormattedMessage: React.FC<FormattedMessageProps> = ({ text }) => {
 };
 
 // Parses inline Markdown: bold, italic, code, inline math, and chunk citations
-function parseInline(text: string): React.ReactNode[] {
+function parseInline(text: string, showReferences: boolean): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
   let i = 0;
   let textBuffer = '';
@@ -99,20 +100,22 @@ function parseInline(text: string): React.ReactNode[] {
     if (chunkMatch) {
       flushTextBuffer();
       const chunkId = chunkMatch[1];
-      nodes.push(
-        <sup
-          key={`chunk-${i}`}
-          className="text-[10.5px] font-mono font-semibold text-text-tertiary hover:text-indigo-400 cursor-pointer select-none px-0.5 transition-colors align-super"
-          title={`Source Document Chunk ${chunkId}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            const event = new CustomEvent('highlight-chunk', { detail: { chunkId } });
-            window.dispatchEvent(event);
-          }}
-        >
-          [{chunkId}]
-        </sup>
-      );
+      if (showReferences) {
+        nodes.push(
+          <sup
+            key={`chunk-${i}`}
+            className="text-[10.5px] font-mono font-semibold text-text-tertiary hover:text-indigo-400 cursor-pointer select-none px-0.5 transition-colors align-super"
+            title={`Source Document Chunk ${chunkId}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              const event = new CustomEvent('highlight-chunk', { detail: { chunkId } });
+              window.dispatchEvent(event);
+            }}
+          >
+            [{chunkId}]
+          </sup>
+        );
+      }
       i += chunkMatch[0].length;
       continue;
     }
@@ -125,7 +128,7 @@ function parseInline(text: string): React.ReactNode[] {
       flushTextBuffer();
       nodes.push(
         <strong key={`bold-${i}`} className="font-semibold text-text-primary text-[14.5px]">
-          {parseInline(boldMatch[1])}
+          {parseInline(boldMatch[1], showReferences)}
         </strong>
       );
       i += boldMatch[0].length;
@@ -138,7 +141,7 @@ function parseInline(text: string): React.ReactNode[] {
       flushTextBuffer();
       nodes.push(
         <em key={`italic-${i}`} className="italic text-text-secondary/90">
-          {parseInline(italicMatch[1])}
+          {parseInline(italicMatch[1], showReferences)}
         </em>
       );
       i += italicMatch[0].length;
@@ -181,71 +184,166 @@ function parseInline(text: string): React.ReactNode[] {
   return nodes;
 }
 
-// Parses block structures line-by-line: headers, bullet lists, numbered lists, blockquotes, paragraphs
-function parseMarkdownBlocks(text: string, blockIndex: number): React.ReactNode[] {
-  const lines = text.split('\n');
-  const lineNodes: React.ReactNode[] = [];
+interface RawListItem {
+  type: 'ul' | 'ol';
+  indent: number;
+  content: React.ReactNode[];
+  key: string;
+}
 
-  let listBuffer: React.ReactNode[] = [];
-  let listType: 'ul' | 'ol' | null = null;
+interface ListTreeNode {
+  type: 'ul' | 'ol';
+  indent: number;
+  items: {
+    content: React.ReactNode[];
+    key: string;
+    children: ListTreeNode[];
+  }[];
+}
 
-  const flushList = (key: string) => {
-    if (!listType) return;
-    if (listType === 'ul') {
-      lineNodes.push(
-        <ul key={`ul-${key}`} className="list-disc pl-6 my-2 space-y-1">
-          {listBuffer}
+function renderNestedLists(items: RawListItem[]): React.ReactNode[] {
+  if (items.length === 0) return [];
+
+  const roots: ListTreeNode[] = [];
+  const stack: ListTreeNode[] = [];
+
+  for (const item of items) {
+    // Find the right parent/level
+    while (stack.length > 0 && stack[stack.length - 1].indent > item.indent) {
+      stack.pop();
+    }
+
+    if (stack.length === 0) {
+      // Create a new root list
+      const newRoot: ListTreeNode = {
+        type: item.type,
+        indent: item.indent,
+        items: [{ content: item.content, key: item.key, children: [] }]
+      };
+      roots.push(newRoot);
+      stack.push(newRoot);
+    } else {
+      const parentList = stack[stack.length - 1];
+      if (item.indent > parentList.indent) {
+        // Create a nested list under the last item of parentList
+        const lastItem = parentList.items[parentList.items.length - 1];
+        const newList: ListTreeNode = {
+          type: item.type,
+          indent: item.indent,
+          items: [{ content: item.content, key: item.key, children: [] }]
+        };
+        lastItem.children.push(newList);
+        stack.push(newList);
+      } else {
+        // Same indent level
+        if (parentList.type === item.type) {
+          parentList.items.push({ content: item.content, key: item.key, children: [] });
+        } else {
+          // Different type at same level -> close this one and create a new list
+          stack.pop();
+          if (stack.length === 0) {
+            const newRoot: ListTreeNode = {
+              type: item.type,
+              indent: item.indent,
+              items: [{ content: item.content, key: item.key, children: [] }]
+            };
+            roots.push(newRoot);
+            stack.push(newRoot);
+          } else {
+            const grandParent = stack[stack.length - 1];
+            const lastItem = grandParent.items[grandParent.items.length - 1];
+            const newList: ListTreeNode = {
+              type: item.type,
+              indent: item.indent,
+              items: [{ content: item.content, key: item.key, children: [] }]
+            };
+            lastItem.children.push(newList);
+            stack.push(newList);
+          }
+        }
+      }
+    }
+  }
+
+  // Now, render the tree recursively
+  function renderNode(node: ListTreeNode): React.ReactNode {
+    const renderedItems = node.items.map((item) => {
+      const nested = item.children.map((child, idx) => (
+        <React.Fragment key={`nested-${item.key}-${idx}`}>
+          {renderNode(child)}
+        </React.Fragment>
+      ));
+      return (
+        <li key={`li-${item.key}`} className="text-text-secondary leading-relaxed pl-1 text-[14px]">
+          {item.content}
+          {nested}
+        </li>
+      );
+    });
+
+    if (node.type === 'ul') {
+      return (
+        <ul key={`ul-${node.items[0].key}`} className="list-disc pl-6 my-1 space-y-1">
+          {renderedItems}
         </ul>
       );
     } else {
-      lineNodes.push(
-        <ol key={`ol-${key}`} className="list-decimal pl-6 my-2 space-y-1">
-          {listBuffer}
+      return (
+        <ol key={`ol-${node.items[0].key}`} className="list-decimal pl-6 my-1 space-y-1">
+          {renderedItems}
         </ol>
       );
     }
-    listBuffer = [];
-    listType = null;
+  }
+
+  return roots.map((root) => renderNode(root));
+}
+
+// Parses block structures line-by-line: headers, bullet lists, numbered lists, blockquotes, paragraphs
+function parseMarkdownBlocks(text: string, blockIndex: number, showReferences: boolean): React.ReactNode[] {
+  const lines = text.split('\n');
+  const lineNodes: React.ReactNode[] = [];
+  let consecutiveListItems: RawListItem[] = [];
+
+  const flushConsecutiveLists = () => {
+    if (consecutiveListItems.length > 0) {
+      lineNodes.push(...renderNestedLists(consecutiveListItems));
+      consecutiveListItems = [];
+    }
   };
 
   for (let j = 0; j < lines.length; j++) {
     const line = lines[j];
     const trimmed = line.trim();
 
-    // 1. Unordered List Items: starts with * or - followed by a space
-    const ulMatch = line.match(/^(\s*)[*-]\s+(.*)$/);
+    // 1. Unordered List Items: starts with *, -, or + followed by a space
+    const ulMatch = line.match(/^(\s*)[*+-]\s+(.*)$/);
     if (ulMatch) {
-      if (listType !== 'ul') {
-        flushList(`list-${blockIndex}-${j}`);
-        listType = 'ul';
-      }
-      listBuffer.push(
-        <li key={`li-${blockIndex}-${j}`} className="text-text-secondary leading-relaxed pl-1 text-[14px]">
-          {parseInline(ulMatch[2])}
-        </li>
-      );
+      const indentDepth = ulMatch[1].replace(/\t/g, '    ').length;
+      consecutiveListItems.push({
+        type: 'ul',
+        indent: indentDepth,
+        content: parseInline(ulMatch[2], showReferences),
+        key: `${blockIndex}-${j}`
+      });
       continue;
     }
 
     // 2. Ordered List Items: starts with a number followed by . and a space
     const olMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
     if (olMatch) {
-      if (listType !== 'ol') {
-        flushList(`list-${blockIndex}-${j}`);
-        listType = 'ol';
-      }
-      listBuffer.push(
-        <li key={`li-${blockIndex}-${j}`} className="text-text-secondary leading-relaxed pl-1 text-[14px]">
-          {parseInline(olMatch[2])}
-        </li>
-      );
+      const indentDepth = olMatch[1].replace(/\t/g, '    ').length;
+      consecutiveListItems.push({
+        type: 'ol',
+        indent: indentDepth,
+        content: parseInline(olMatch[2], showReferences),
+        key: `${blockIndex}-${j}`
+      });
       continue;
     }
 
     // Non-list line matches: first flush any active list buffer
-    if (listType) {
-      flushList(`list-flush-${blockIndex}-${j}`);
-    }
+    flushConsecutiveLists();
 
     // 3. Headers: #, ##, ###
     const headerMatch = line.match(/^(#{1,6})\s+(.*)$/);
@@ -262,7 +360,7 @@ function parseMarkdownBlocks(text: string, blockIndex: number): React.ReactNode[
 
       lineNodes.push(
         <Tag key={`h-${blockIndex}-${j}`} className={classes}>
-          {parseInline(content)}
+          {parseInline(content, showReferences)}
         </Tag>
       );
       continue;
@@ -276,7 +374,7 @@ function parseMarkdownBlocks(text: string, blockIndex: number): React.ReactNode[
           key={`bq-${blockIndex}-${j}`}
           className="pl-3.5 border-l-2 border-indigo-500/50 italic text-text-secondary/80 my-2 bg-indigo-500/5 py-1 px-2 rounded-r"
         >
-          {parseInline(content)}
+          {parseInline(content, showReferences)}
         </blockquote>
       );
       continue;
@@ -293,15 +391,13 @@ function parseMarkdownBlocks(text: string, blockIndex: number): React.ReactNode[
     // 6. Standard Paragraph
     lineNodes.push(
       <p key={`p-${blockIndex}-${j}`} className="text-text-secondary leading-relaxed text-[14px] mb-1.5">
-        {parseInline(line)}
+        {parseInline(line, showReferences)}
       </p>
     );
   }
 
   // Flush any final list left in buffer
-  if (listType) {
-    flushList(`list-flush-end-${blockIndex}`);
-  }
+  flushConsecutiveLists();
 
   return lineNodes;
 }

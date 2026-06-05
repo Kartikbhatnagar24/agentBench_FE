@@ -18,6 +18,7 @@ interface ChatPanelProps {
   setSessions: React.Dispatch<React.SetStateAction<ChatSession[]>>;
   user: UserSession;
   addToast: (text: string, type: ToastMessage['type']) => void;
+  showReferences: boolean;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -26,6 +27,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   setSessions,
   user,
   addToast,
+  showReferences,
 }) => {
   const navigate = useNavigate();
   const [chatMessage, setChatMessage] = useState('');
@@ -147,13 +149,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     else { addToast('WebSocket is not connected.', 'error'); setIsSending(false); }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const hasText = chatMessage.trim().length > 0;
+  const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
+    if (e) e.preventDefault();
+    const queryText = customText !== undefined ? customText.trim() : chatMessage.trim();
+    const hasText = queryText.length > 0;
     const hasFiles = attachedFiles.length > 0;
     if ((!hasText && !hasFiles) || isSending || isUploading) return;
 
-    const textToSend = chatMessage.trim() || 'Please analyse the attached document(s) and summarise the key points.';
+    const textToSend = queryText || 'Please analyse the attached document(s) and summarise the key points.';
     setChatMessage('');
     setIsSending(true);
 
@@ -178,9 +181,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         navigate(`/chat/${newSession.id}`, { replace: true });
         // queueMessage waits for the socket opened by navigate()'s useEffect — no race condition.
         queueMessage(newSession.id, textToSend);
-        addToast('Conversation started.', 'success');
+        addToast('Chat started.', 'success');
       } catch {
-        addToast('Failed to start conversation.', 'error');
+        addToast('Failed to start chat.', 'error');
         setIsSending(false);
       }
     }
@@ -209,27 +212,40 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       )}
 
       {activeSession ? (
-        <MessageList
-          messages={activeSession.messages}
-          isSending={isSending}
-          messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
-        />
+        <>
+          <MessageList
+            messages={activeSession.messages}
+            isSending={isSending}
+            messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
+            showReferences={showReferences}
+          />
+          <ChatInputBar
+            chatMessage={chatMessage}
+            attachedFiles={attachedFiles}
+            isUploading={isUploading}
+            isSending={isSending}
+            canSubmit={canSubmit}
+            fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
+            onMessageChange={setChatMessage}
+            onFileAttach={handleFileAttach}
+            onRemoveFile={removeAttachedFile}
+            onSubmit={handleSendMessage}
+          />
+        </>
       ) : (
-        <ChatEmptyState onUploadClick={() => fileInputRef.current?.click()} />
+        <ChatEmptyState
+          chatMessage={chatMessage}
+          attachedFiles={attachedFiles}
+          isUploading={isUploading}
+          isSending={isSending}
+          canSubmit={canSubmit}
+          fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
+          onMessageChange={setChatMessage}
+          onFileAttach={handleFileAttach}
+          onRemoveFile={removeAttachedFile}
+          onSubmit={handleSendMessage}
+        />
       )}
-
-      <ChatInputBar
-        chatMessage={chatMessage}
-        attachedFiles={attachedFiles}
-        isUploading={isUploading}
-        isSending={isSending}
-        canSubmit={canSubmit}
-        fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
-        onMessageChange={setChatMessage}
-        onFileAttach={handleFileAttach}
-        onRemoveFile={removeAttachedFile}
-        onSubmit={handleSendMessage}
-      />
     </div>
   );
 };

@@ -19,14 +19,14 @@ export const EmptyState = () => {
           </div>
           <h2 className="text-xl font-semibold text-text-primary tracking-tight">No evaluation metrics yet</h2>
           <p className="mt-3 text-sm text-text-secondary leading-relaxed max-w-sm">
-            Metrics appear after your first conversation. Start a chat and run queries to see real-time pipeline confidence, retries, RAGAS scores, and latency stats.
+            Metrics appear after your first chat. Start a chat and run queries to see real-time pipeline confidence, retries, RAGAS scores, and latency stats.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button
               onClick={() => navigate('/chat')}
               className="btn-accent px-6 w-full sm:w-auto shadow-lg shadow-accent/20"
             >
-              Start a conversation
+              Start a chat
             </button>
           </div>
         </div>

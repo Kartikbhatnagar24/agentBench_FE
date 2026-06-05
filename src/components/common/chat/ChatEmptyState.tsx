@@ -1,52 +1,147 @@
 import React from 'react';
+import { Spinner } from '../spinners/Spinner';
 
 interface ChatEmptyStateProps {
-  onUploadClick: () => void;
+  chatMessage: string;
+  attachedFiles: File[];
+  isUploading: boolean;
+  isSending: boolean;
+  canSubmit: boolean;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  onMessageChange: (value: string) => void;
+  onFileAttach: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveFile: (idx: number) => void;
+  onSubmit: (e: React.FormEvent) => void;
 }
 
-export const ChatEmptyState: React.FC<ChatEmptyStateProps> = ({ onUploadClick }) => {
+export const ChatEmptyState: React.FC<ChatEmptyStateProps> = ({
+  chatMessage,
+  attachedFiles,
+  isUploading,
+  isSending,
+  canSubmit,
+  fileInputRef,
+  onMessageChange,
+  onFileAttach,
+  onRemoveFile,
+  onSubmit,
+}) => {
   return (
-    <div className="flex-grow flex flex-col items-center justify-center p-10 animate-fade-in">
-      {/* Document icon with spark badge */}
-      <div className="empty-icon w-16 h-16 rounded-2xl flex items-center justify-center mb-6 relative">
-        <svg className="w-7 h-7 text-accent" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-          />
-        </svg>
-        {/* Spark badge */}
-        <div className="empty-icon-spark absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center">
-          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M11.983 1.907a.75.75 0 00-1.292-.657l-8.5 9.5A.75.75 0 002.75 12h6.572l-1.305 6.093a.75.75 0 001.292.657l8.5-9.5A.75.75 0 0017.25 8h-6.572l1.305-6.093z" />
-          </svg>
-        </div>
+    <div className="flex-grow flex flex-col items-center justify-center p-6 animate-fade-in">
+      <div className="w-full max-w-2xl px-4 flex flex-col items-center">
+        {/* Title */}
+        <h1 className="text-3xl font-semibold text-text-primary tracking-tight mb-8">
+          Ask me anything...
+        </h1>
+
+        {/* Input form panel */}
+        <form onSubmit={onSubmit} className="w-full mb-6">
+          
+          {/* File chips tray inside empty state */}
+          {attachedFiles.length > 0 && (
+            <div className="file-chips-tray flex flex-wrap gap-1.5 mb-3 p-2 rounded-xl animate-slide-up bg-surface-raised border border-surface-border">
+              {attachedFiles.map((file, idx) => {
+                const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+                return (
+                  <div key={idx} className="file-chip flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-overlay border border-surface-border">
+                    <span className={`badge flex-shrink-0 ${ext === 'pdf' ? 'badge-pdf' : 'badge-txt'}`}>
+                      {ext}
+                    </span>
+                    <span className="text-[11px] text-text-secondary max-w-[120px] truncate">{file.name}</span>
+                    <span className="font-mono text-[9px] text-text-tertiary">
+                      {(file.size / 1024).toFixed(0)}KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveFile(idx)}
+                      className="text-text-tertiary hover:text-state-danger transition-colors ml-0.5"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Upload progress indicator */}
+          {isUploading && (
+            <div className="flex items-center gap-2 mb-3 text-xs text-text-tertiary animate-fade-in">
+              <Spinner size="sm" />
+              <span>Indexing into RAG memory…</span>
+            </div>
+          )}
+
+          {/* Centered large input bar */}
+          <div 
+            className="input-row flex flex-col gap-2 p-3 rounded-2xl"
+            style={{
+              background: 'rgba(24, 24, 27, 0.65)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            {/* Input & buttons row */}
+            <div className="flex items-center gap-3 w-full">
+              {/* Hidden file picker */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt,.pdf"
+                multiple
+                className="hidden"
+                onChange={onFileAttach}
+              />
+
+              {/* Attach button */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSending || isUploading}
+                title="Attach .txt or .pdf (max 2 MB)"
+                className={`p-2 flex-shrink-0 rounded-xl hover:bg-white/[0.05] text-text-tertiary hover:text-text-primary transition-all duration-150 ${
+                  attachedFiles.length > 0 ? 'text-accent' : ''
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                </svg>
+              </button>
+
+              {/* Text input */}
+              <input
+                type="text"
+                placeholder="Ask me anything..."
+                value={chatMessage}
+                onChange={(e) => onMessageChange(e.target.value)}
+                disabled={isSending || isUploading}
+                className="flex-grow bg-transparent outline-none border-none text-sm text-text-primary placeholder:text-text-tertiary py-1 px-0.5"
+              />
+
+              {/* Send button (solid white circle with black up arrow) */}
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: canSubmit ? '#ffffff' : 'rgba(255, 255, 255, 0.15)',
+                  color: canSubmit ? '#000000' : 'rgba(255, 255, 255, 0.4)',
+                }}
+              >
+                {isUploading ? (
+                  <Spinner size="sm" color="black" />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-
-      <p className="text-base font-semibold text-text-primary mb-2">Ask your documents anything</p>
-      <p className="text-sm text-text-tertiary text-center max-w-sm leading-relaxed mb-7">
-        Upload a{' '}
-        <code className="code-token font-mono text-accent/80 px-1 py-0.5 rounded">.pdf</code>
-        {' '}or{' '}
-        <code className="code-token font-mono text-accent/80 px-1 py-0.5 rounded">.txt</code>
-        {' '}to ground your query in document context, then start chatting.
-      </p>
-
-      {/* Upload CTA */}
-      <button
-        type="button"
-        id="empty-state-upload-btn"
-        onClick={onUploadClick}
-        className="btn-upload flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-medium"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-        </svg>
-        Upload document
-      </button>
-
-      <p className="text-[11px] text-text-tertiary mt-3 font-mono">or drop a file anywhere · max 2 MB</p>
     </div>
   );
 };
