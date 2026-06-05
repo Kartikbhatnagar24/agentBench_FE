@@ -29,7 +29,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </svg>
           </div>
           <span className="text-sm font-medium text-text-primary">
-            {activeSession ? 'RAG Assistant' : 'New conversation'}
+            {activeSession ? 'METO' : 'New conversation'}
           </span>
         </div>
 

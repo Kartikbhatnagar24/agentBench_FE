@@ -12,7 +12,7 @@ interface DashboardPageProps {
   addToast: (text: string, type: ToastMessage['type']) => void;
 }
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({ user, addToast }) => {
+export const DashboardPage: React.FC<DashboardPageProps> = ({ user, onLogout, addToast }) => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
 
@@ -89,7 +89,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ user, addToast }) 
           activeSession={activeSession}
           isLoading={isSessionsLoading}
           onSelectSession={(s) => navigate(`/chat/${s.id}`)}
-          // onLogout={onLogout}
+          onLogout={onLogout}
           onCreateNewSession={() => navigate('/chat')}
           onDeleteSession={handleDeleteSession}
         />
