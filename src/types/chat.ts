@@ -1,4 +1,5 @@
-export interface SignUpDto {
+
+export interface SignUpDto {
   email: string;
   password?: string;
   confirm_password?: string;
@@ -67,6 +68,7 @@ export interface StatusBreakdown {
 export interface SessionAnalysis {
   session_id: string;
   title: string;
+  created_at?: string;
   total_queries: number;
   avg_faithfulness: number;
   avg_answer_relevancy: number;

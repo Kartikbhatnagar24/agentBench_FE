@@ -10,6 +10,21 @@ import {
 } from '../../../utils/Analysis';
 import { FormattedMessage } from '../../../components/common/chat/FormattedMessage';
 
+const formatDate = (isoString?: string) => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+};
+
 interface SessionBreakdownProps {
   sessions: SessionAnalysis[];
   onSessionClick: (sessionId: string) => void;
@@ -56,32 +71,39 @@ export const SessionBreakdown: React.FC<SessionBreakdownProps> = ({ sessions, on
                   className="flex flex-col cursor-pointer select-none"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0 flex items-center gap-2">
-                      <p className="text-xs font-semibold text-text-primary truncate" title={session.title}>
-                        {session.title}
-                      </p>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSessionClick(session.session_id);
-                        }}
-                        className="p-1 rounded text-text-secondary hover:text-accent hover:bg-white/[0.05] transition-colors flex-shrink-0"
-                        title="Open Chat Session"
-                      >
-                        <svg
-                          className="w-3.5 h-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-semibold text-text-primary truncate" title={session.title}>
+                          {session.title}
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSessionClick(session.session_id);
+                          }}
+                          className="p-1 rounded text-text-secondary hover:text-accent hover:bg-white/[0.05] transition-colors flex-shrink-0"
+                          title="Open Chat Session"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
-                          />
-                        </svg>
-                      </button>
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      {session.created_at && (
+                        <p className="text-[10px] text-text-tertiary mt-0.5 font-mono">
+                          {formatDate(session.created_at)}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="font-mono text-xs text-accent font-semibold">
